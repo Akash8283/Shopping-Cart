@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../component/Header'
 import { Card } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { getallproducts } from '../redux/slices/productSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBackward, faForward } from '@fortawesome/free-solid-svg-icons'
 
 
 function Home() {
@@ -11,13 +13,33 @@ function Home() {
    const {loading,allProducts,error} = useSelector(state=>state.productReducer)
   //  console.log(allProducts);
 
+  const [currentPage,setCurrentPage] = useState(1)
+  const productsPerPage = 8
+  const totalPages = Math.ceil(allProducts.length / productsPerPage)
+  
+  const pageItemLastIndex = currentPage * productsPerPage
+  const pageItemStartIndex = pageItemLastIndex - productsPerPage
+  const visibleProducrsArray = allProducts?.slice(pageItemStartIndex,pageItemLastIndex)
+
    useEffect(()=>{
     dispatch(getallproducts())
    },[])
 
+  const navigateNext =()=>{
+    if (currentPage!=totalPages) {
+      setCurrentPage(currentPage+1)
+    }
+  }
+
+  const navigatePrevious =()=>{
+    if (currentPage!=1) {
+      setCurrentPage(currentPage-1)
+    }
+  }
+
   return (
     <>
-      <Header/>
+      <Header insideHome={true} />
      <div className='container py-5'>
        {
         loading?
@@ -27,7 +49,7 @@ function Home() {
         {/* dupliacte */}
         {
           allProducts?.length>0?
-          allProducts?.map(product=>(
+          visibleProducrsArray?.map(product=>(
             <div key={product?.id} className="col-md-3 mb-2">
           {/* Card */}
             <Card>
@@ -42,6 +64,11 @@ function Home() {
           :
            <p className='text-center fw-bold fs-5'>Product not Found</p>
         }
+        <div className="my-3 text-center mt-5">
+          <button onClick={navigatePrevious} className='btn btn-outline-primary me-1'> <FontAwesomeIcon icon={faBackward}/></button>
+          <span>{currentPage} of {totalPages}</span>
+          <button onClick={(navigateNext)} className='btn btn-outline-primary ms-1'> <FontAwesomeIcon icon={faForward}/></button>
+        </div>
        </div>
        }
        </div>
